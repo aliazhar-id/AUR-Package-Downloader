@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd ~/Downloads/Packages && git clone https://aur.archlinux.org/"$@" && cd "$@" && makepkg -s
+echo "APD sudah selesai"
