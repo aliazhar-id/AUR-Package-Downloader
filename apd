@@ -1,4 +1,16 @@
 #!/bin/bash
 
-cd ~/Downloads/Packages && git clone https://aur.archlinux.org/"$@" && cd "$@" && makepkg -s
-echo "APD sudah selesai"
+if [ $# -eq 0 ]
+  then
+    echo "No packages specified"
+    exit 1
+fi
+
+[ -d "/home/$USER/Downloads/Packages/$@" ] && echo "Directory ~/Downloads/Packages/$@ exists." && exit 1
+
+cd ~/Downloads/Packages 
+git clone https://aur.archlinux.org/"$@"
+cd "$@"
+makepkg -s
+
+echo "APD has been completed"
