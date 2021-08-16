@@ -1,16 +1,31 @@
 #!/bin/bash
+# ===============================================
+# Author: aliazhar < aliazhar0555@gmail.com >
+# Contributor: -
+# License: GNU General Public License v2.0
+# ===============================================
 
-if [ $# -eq 0 ]
+
+# {[IMPORTANT]} Where PKGBUILD and clones will be stored; cDir which means 'cache directory'.
+cDir=~/Downloads/Packages
+ 
+# Check if argument/package name is specified or not.
+[ $# -eq 0 ] && echo "No packages specified" && exit 1
+
+# Check if cache directory exists or not
+if ! [ -d $cDir ]
   then
-    echo "No packages specified"
+    echo "Error: Cache directory not found"
+    echo "run 'mkdir -p $cDir' to solve it"
     exit 1
 fi
 
-[ -d "/home/$USER/Downloads/Packages/$@" ] && echo "Directory ~/Downloads/Packages/$@ exists." && exit 1
+# Check if directory with package name exists or not
+! [ -d $cDir/$@ ] && git -C $cDir clone https://aur.archlinux.org/$@
 
-cd ~/Downloads/Packages 
-git clone https://aur.archlinux.org/"$@"
-cd "$@"
+cd $cDir/$@
+
+# Change 'makepkg -s' to 'makepkg -si' if you want the downloaded package to be installed automatically by APD
 makepkg -s
 
-echo "APD has been completed"
+echo "APD has successfully build packages"
