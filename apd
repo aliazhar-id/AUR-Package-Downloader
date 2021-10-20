@@ -20,12 +20,20 @@ if ! [ -d $cDir ]
     exit 1
 fi
 
-# Check if directory with package name exists or not
-! [ -d $cDir/$@ ] && git -C $cDir clone https://aur.archlinux.org/$@
+if [ "$*" == "-si $2" ]; then
+  # Check if directory with package name exists or not
+  ! [ -d $cDir/$2 ] && git -C $cDir clone https://aur.archlinux.org/$2
 
-cd $cDir/$@
+  cd $cDir/$2
 
-# Change 'makepkg -s' to 'makepkg -si' if you want the downloaded package to be installed automatically by APD
-makepkg -s
+    makepkg -si
+  else
+    # Check if directory with package name exists or not
+    ! [ -d $cDir/$@ ] && git -C $cDir clone https://aur.archlinux.org/$@
+
+    cd $cDir/$@
+
+    makepkg -s
+fi
 
 echo "APD has successfully build packages"
