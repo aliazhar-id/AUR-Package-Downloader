@@ -10,30 +10,29 @@
 cDir=~/Packages
  
 # Check if argument/package name is specified or not.
-[ $# -eq 0 ] && echo "No packages specified" && exit 1
+[ $# -eq 0 ] && printf "No packages specified" && exit 1
 
 # Check if cache directory exists or not
 if ! [ -d $cDir ]
   then
-    echo "Error: Cache directory not found"
-    echo "run 'mkdir -p $cDir' to solve it"
+    printf "Error: Cache directory not found"
+    printf "run 'mkdir -p $cDir' to solve it"
     exit 1
 fi
 
-if [ "$*" == "-si $2" ]; then
-  # Check if directory with package name exists or not
-  ! [ -d $cDir/$2 ] && git -C $cDir clone https://aur.archlinux.org/$2
-
-  cd $cDir/$2
-
-    makepkg -si
+if [ "$*" == "-i $2" ]; then
+    packageName = $2
+    apdParams = '-si'
   else
-    # Check if directory with package name exists or not
-    ! [ -d $cDir/$@ ] && git -C $cDir clone https://aur.archlinux.org/$@
-
-    cd $cDir/$@
-
-    makepkg -s
+    packageName = $@
+    apdParams = '-s'
 fi
 
-echo "APD has successfully build packages"
+# Check if directory with package name exists or not
+! [ -d $cDir/$packageName ] && git -C $cDir clone https://aur.archlinux.org/$packageName
+
+cd $cDir/$packageName
+
+makepkg $apdParams
+
+printf "APD has successfully build packages"
