@@ -21,11 +21,11 @@ if ! [ -d $cDir ]
 fi
 
 if [ "$*" == "-i $2" ]; then
-    packageName = $2
-    apdParams = '-si'
+    packageName=$2
+    apdParams='-si'
   else
-    packageName = $@
-    apdParams = '-s'
+    packageName=$@
+    apdParams='-s'
 fi
 
 # Check if directory with package name exists or not
