@@ -10,29 +10,40 @@
 cDir=~/Packages
  
 # Check if argument/package name is specified or not.
-[ $# -eq 0 ] && printf "No packages specified" && exit 1
+if [ $# -eq 0 ] || [ $1 == "-h" ];
+  then
+    printf "Error: Wrong/Missing Options.\n\nUsage: apd [options/AUR name] \n\nOptions:\n  -h     :     Show this help message and exit. \n  -i     :     Install package after successful build.\n"
+    exit 1;
+fi
 
 # Check if cache directory exists or not
-if ! [ -d $cDir ]
+if ! [ -d $cDir ];
   then
     printf "Error: Cache directory not found"
     printf "run 'mkdir -p $cDir' to solve it"
-    exit 1
+    exit 1;
 fi
 
-if [ "$*" == "-i $2" ]; then
+if [ "$*" == "-i $2" ]; 
+  then
     packageName=$2
     apdParams='-si'
+    msg='APD has successfully build and install the packages :)\n'
   else
     packageName=$@
     apdParams='-s'
+    msg='APD has successfully build the packages :)\n'
 fi
 
 # Check if directory with package name exists or not
 ! [ -d $cDir/$packageName ] && git -C $cDir clone https://aur.archlinux.org/$packageName
 
-cd $cDir/$packageName
-
-makepkg $apdParams
-
-printf "APD has successfully build packages"
+if [[ -e $cDir/$packageName/"PKGBUILD" ]]; 
+  then
+    cd $cDir/$packageName
+    makepkg $apdParams;
+    printf "$msg"
+  else
+    rm -rf $cDir/$packageName
+    printf ". . . APD Failed . . .\n"
+fi

@@ -12,6 +12,8 @@ sudo curl https://raw.githubusercontent.com/aliazhar-id/AUR-Packages-Downloader/
 $ apd <package-name-in-aur>
 
 eg. $ apd scrcpy
+
+for more detailed information, do 'apd -h'
 ```
 
 #### Note : can't install more than one package at the same time
