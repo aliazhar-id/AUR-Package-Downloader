@@ -9,40 +9,46 @@
 # {[IMPORTANT]} Where PKGBUILD and clones will be stored; cDir which means 'cache directory'.
 cDir=~/Packages
  
-# Check if argument/package name is specified or not.
-if [ $# -eq 0 ] || [ $1 == "-h" ];
+# Check if argument/package name is specified or not and argument '-h' exist.
+if [[ $# -eq 0 ]] || [[ $1 == "-h" ]];
   then
     printf "Error: Wrong/Missing Options.\n\nUsage: apd [options/AUR name] \n\nOptions:\n  -h     :     Show this help message and exit. \n  -i     :     Install package after successful build.\n"
     exit 1;
 fi
 
 # Check if cache directory exists or not
-if ! [ -d $cDir ];
+if ! [[ -d $cDir ]];
   then
     printf "Error: Cache directory not found"
     printf "run 'mkdir -p $cDir' to solve it"
     exit 1;
 fi
 
-if [ "$*" == "-i $2" ]; 
+# Check whether the -s argument exists or not, install it after the package has been successfully built, if exist.
+if [[ "$*" == "-i $2" ]]; 
   then
     packageName=$2
     apdParams='-si'
-    msg='APD has successfully build and install the packages :)\n'
+    msg='build and install'
   else
     packageName=$@
     apdParams='-s'
-    msg='APD has successfully build the packages :)\n'
+    msg='build'
 fi
 
-# Check if directory with package name exists or not
-! [ -d $cDir/$packageName ] && git -C $cDir clone https://aur.archlinux.org/$packageName
+# Check if the directory with the package name exists or not, if it doesn't exist, clone it, if it exists go to that directory. 
+if ! [[ -d $cDir/$packageName ]]; 
+  then
+    git -C $cDir clone https://aur.archlinux.org/$packageName
+  else
+    cd $cDir/$packageName
+fi
 
+# Check if there is a file with the name PKGBUILD, if not, it means the package is not available in AUR.
 if [[ -e $cDir/$packageName/"PKGBUILD" ]]; 
   then
-    cd $cDir/$packageName
-    makepkg $apdParams;
-    printf "$msg"
+    makepkg $apdParams &&
+    printf "APD has successfully $msg the packages :)\n"
   else
     rm -rf $cDir/$packageName
     printf ". . . APD Failed . . .\n"
