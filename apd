@@ -5,51 +5,157 @@
 # License: GNU General Public License v2.0
 # ===============================================
 
-
+############################################################
+# Settings                                                 #
+############################################################
 # {[IMPORTANT]} Where PKGBUILD and clones will be stored; cDir which means 'cache directory'.
 cDir=~/Packages
- 
-# Check if argument/package name is specified or not and argument '-h' exist.
-if [[ $# -eq 0 ]] || [[ $1 == "-h" ]];
+
+############################################################
+# Help                                                     #
+############################################################
+Help()
+{
+  # Display Help
+  echo
+  echo "apd [options] [AUR name]"
+  echo "options:"
+  echo " -i     Install package after successful build."
+  echo " -h     Show this help message and exit."
+  echo " -v     Print software version and exit."
+  echo
+}
+
+############################################################
+# Version                                                  #
+############################################################
+Version()
+{
+  # Display version and description
+  echo
+  echo "                        APD v1.1.0"
+  echo "     _    ____  ____    Copyright (C) 2021 aliazhar"
+  echo "    / \  |  _ \|  _ \\"
+  echo "   / _ \ | |_) | | | |  Software script that works as an AUR helper." 
+  echo "  / ___ \|  __/| |_| |"
+  echo " /_/   \_\_|   |____/   This program may be freely redistributed"
+  echo "                        under the terms of the GNU GPL v2.0"
+  echo "                        (General Public License)."
+  echo  
+}
+
+############################################################
+# CheckDirCache                                            #
+############################################################
+CheckDirCache()
+{
+  # Check cache directory exists or not
+  if ! [[ -d $cDir ]];
+    then
+      echo "Error: Cache directory not found"
+      echo "run 'mkdir -p $cDir' to solve it"
+      exit 1;
+  fi   
+}
+
+############################################################
+# Clone                                                    #
+############################################################
+Clone()
+{
+  # Check the directory with the package name exists or not, if it doesn't exist, clone it, if it exists go to that directory. 
+  if ! [[ -d $cDir/$package ]]; 
+    then
+      git -C $cDir clone https://aur.archlinux.org/$package
+  fi
+  cd $cDir/$package
+}
+
+############################################################
+# CheckPKGBUILD                                            #
+############################################################
+CheckPKGBUILD()
+{
+  if ! [[ -e $cDir/$package/"PKGBUILD" ]]; 
+    then
+      echo "$package not found in AUR"
+
+      while true; do
+        read -p "Do you want to clear this cache?[Y/N] " yn
+        case $yn in
+          [Yy]* ) rm -rf $cDir/$package; exit;;
+          [Nn]* ) exit;;
+          * ) echo "Please answer [Y/N]!"
+          echo;;
+        esac
+      done
+  fi
+}
+
+############################################################
+# Build                                                    #
+############################################################
+apdOptions="s"
+Build()
+{
+  makepkg "-$apdOptions"
+  echo
+  exit 0;
+}
+
+############################################################
+# NoOpts                                                   #
+############################################################
+NoOpts()
+{
+  package=$1
+
+  CheckDirCache
+  Clone
+  CheckPKGBUILD
+  Build
+}
+
+############################################################
+############################################################
+# Main program                                             #
+############################################################
+############################################################
+# Check argument/options exist or not.
+if [[ $# -eq 0 ]];
   then
-    printf "Error: Wrong/Missing Options.\n\nUsage: apd [options/AUR name] \n\nOptions:\n  -h     :     Show this help message and exit. \n  -i     :     Install package after successful build.\n"
+    echo "Error: No package/option specified"
     exit 1;
-fi
+fi 
 
-# Check if cache directory exists or not
-if ! [[ -d $cDir ]];
-  then
-    printf "Error: Cache directory not found"
-    printf "run 'mkdir -p $cDir' to solve it"
-    exit 1;
-fi
+# Get the options
+while getopts ":hvi:" option; do
+  case $option in
+    h) # display Help
+      Help
+      exit;;
+    i) # Install the package
+      package=$OPTARG
+      apdOptions+="i"
 
-# Check whether the -s argument exists or not, install it after the package has been successfully built, if exist.
-if [[ "$*" == "-i $2" ]]; 
-  then
-    packageName=$2
-    apdParams='-si'
-    msg='build and install'
-  else
-    packageName=$@
-    apdParams='-s'
-    msg='build'
-fi
+      CheckDirCache
+      Clone
+      CheckPKGBUILD
+      Build
+      exit;;
+    v) # Print Version and desc 
+      Version
+      exit 0;;
+    \?) # Invalid option
+      echo "Error: Invalid option -$OPTARG"
+      echo
+      Help
+      exit 1;;
+    :)
+      echo "Error: No package specified"
+      exit 1;;    
+  esac
+done
 
-# Check if the directory with the package name exists or not, if it doesn't exist, clone it, if it exists go to that directory. 
-if ! [[ -d $cDir/$packageName ]]; 
-  then
-    git -C $cDir clone https://aur.archlinux.org/$packageName
-  else
-    cd $cDir/$packageName
-fi
-
-# Check if there is a file with the name PKGBUILD, if not, it means the package is not available in AUR.
-if [[ -e $cDir/$packageName/"PKGBUILD" ]]; 
-  then
-    makepkg $apdParams &&
-    printf "APD has successfully $msg the packages :)\n"
-  else
-    rm -rf $cDir/$packageName
-    printf ". . . APD Failed . . .\n"
-fi
+#If no options, but have a package spesified
+NoOpts $1
